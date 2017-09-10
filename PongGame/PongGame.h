@@ -11,6 +11,7 @@ namespace Library
 namespace Pong
 {
 	class Ball;
+	class Paddle;
 
 	class PongGame : public Library::Game
 	{
@@ -29,6 +30,8 @@ namespace Pong
 
 		std::shared_ptr<Library::KeyboardComponent> mKeyboard;
 		std::shared_ptr<Ball> mBall;
+		std::shared_ptr<Paddle> mPaddle1;
+		std::shared_ptr<Paddle> mPaddle2;
 		std::shared_ptr<DirectX::SpriteFont> mFont;
 		std::wstring mPlayer1ScoreText;
 		std::wstring mPlayer2ScoreText;

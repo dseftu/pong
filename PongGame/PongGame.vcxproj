@@ -130,12 +130,14 @@ IF EXIST "$(ProjectDir)content" xcopy /E /Y "$(ProjectDir)Content" "$(OutDir)Con
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Ball.cpp" />
+    <ClCompile Include="Paddle.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="PongGame.cpp" />
     <ClCompile Include="Program.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ball.h" />
+    <ClInclude Include="Paddle.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PongGame.h" />
   </ItemGroup>

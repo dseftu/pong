@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "PongGame.h"
 #include "Ball.h"
+#include "Paddle.h"
 
 using namespace std;
 using namespace DirectX;
@@ -19,7 +20,8 @@ namespace Pong
 
 	void PongGame::Initialize()
 	{
-		SpriteManager::Initialize(*this);
+		SpriteManager::Initialize(*this);		
+		
 		BlendStates::Initialize(mDirect3DDevice.Get());
 
 		mKeyboard = make_shared<KeyboardComponent>(*this);
@@ -29,9 +31,14 @@ namespace Pong
 		mBall = make_shared<Ball>(*this);
 		mComponents.push_back(mBall);
 
-		//mScoreFont = make_unique<SpriteFont>(mGame->Direct3DDevice(), L"Content\\Fonts\\Arial_14_Regular.spritefont");
+		mPaddle1 = make_shared<Paddle>(*this);
+		mComponents.push_back(mPaddle1);
+
+		mPaddle2 = make_shared<Paddle>(*this);
+		mPaddle2->SetPlayer(2);
+		mComponents.push_back(mPaddle2);
+
 		mFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_36_Regular.spritefont");
-		
 
 		Game::Initialize();
 
