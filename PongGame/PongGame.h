@@ -37,5 +37,6 @@ namespace Pong
 
 		int mPlayer1Score = 0;
 		int mPlayer2Score = 0;
+		bool mGameOver = false;
 	};
 }

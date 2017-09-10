@@ -10,6 +10,7 @@ using namespace Microsoft::WRL;
 namespace Pong
 {
 	const XMVECTORF32 PongGame::BackgroundColor = Colors::Black;
+	const int MAXSCORE = 3;
 
 	PongGame::PongGame(function<void*()> getWindowCallback, function<void(SIZE&)> getRenderTargetSizeCallback) :
 		Game(getWindowCallback, getRenderTargetSizeCallback)
@@ -52,15 +53,18 @@ namespace Pong
 		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
 		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
 	
-		if (mBall->DidPlayerScore(Library::Players::Player1))
+		
+		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
 		{
 			mPlayer1Score++;
-			mBall->Initialize();
+			if (mPlayer1Score < MAXSCORE) mBall->Initialize();
+			else mGameOver = true;
 		}
-		else if (mBall->DidPlayerScore(Library::Players::Player2))
+		else if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player2))
 		{
 			mPlayer2Score++;
-			mBall->Initialize();
+			if (mPlayer2Score < MAXSCORE) mBall->Initialize();
+			else mGameOver = true;
 		}
 
 
@@ -84,7 +88,7 @@ namespace Pong
 		mPlayer2ScoreTextPosition.x += 150;
 		mPlayer2ScoreTextPosition.y = 50;
 
-		// TODO check for game over
+		
 
 
 		Game::Update(gameTime);
