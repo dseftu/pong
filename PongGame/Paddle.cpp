@@ -8,7 +8,7 @@ using namespace Microsoft::WRL;
 
 namespace Pong
 {
-	const int Paddle::MinPaddleSpeed = 200;
+	const int Paddle::MinPaddleSpeed = 100;
 	const int Paddle::MaxPaddleSpeed = 400;
 
 	random_device Paddle::sDevice;
@@ -54,6 +54,10 @@ namespace Pong
 	void Paddle::SetPlayer(int player)
 	{
 		mPlayer = player;
+		if (mPlayer == 2)
+		{
+			mVelocity.y = 300;
+		}
 	}
 
 	void Paddle::Update(const Library::GameTime& gameTime)
@@ -66,37 +70,25 @@ namespace Pong
 
 	void Paddle::AIControl(float elapsedTime)
 	{
-		auto& viewport = mGame->Viewport();		
-		//bool atTopBoundary = (mBounds.Y <= 0);
-		//bool atBottomBoundary = (mBounds.Y + mBounds.Height >= viewport.Height);
-		
+		auto& viewport = mGame->Viewport();				
 
 		XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime);
 		mBounds.Y += static_cast<int>(std::round(positionDelta.y));
 
-		
-		if (mBounds.X + mBounds.Width >= viewport.Width && mVelocity.x > 0.0f)
-		{
-
-		}
-		if (mBounds.X <= 0 && mVelocity.x < 0.0f)
-		{
-			
-		}
-
 		if (mBounds.Y + mBounds.Height >= viewport.Height && mVelocity.y > 0.0f)
 		{
-			mVelocity.y *= 0;
+			mBounds.Y = (int32_t)viewport.Height - mBounds.Height;
+			mVelocity.y *= -1;
 		}
 		if (mBounds.Y <= 0 && mVelocity.y < 0.0f)
 		{
-			mVelocity.y *= 0;
+			mBounds.Y = 0;
+			mVelocity.y *= -1;
 		}
 	}
 
 	void Paddle::HumControl(float elapsedTime)
 	{
-		UNREFERENCED_PARAMETER(elapsedTime);
 
 		// determine if the paddle is at the edge.
 		auto& viewport = mGame->Viewport();
@@ -142,7 +134,19 @@ namespace Pong
 		
 		mBounds.Y = center.Y - mTextureHalfSize.Y;
 
-		mVelocity.x = static_cast<float>(sSpeedDistribution(sGenerator) * (sBoolDistribution(sGenerator) ? 1 : -1));
+		mVelocity.x = 0;
+
+		mVelocity.y = -static_cast<float>(sSpeedDistribution(sGenerator));
+	}
+
+	void Paddle::ResetVelocity()
+	{
 		mVelocity.y = static_cast<float>(sSpeedDistribution(sGenerator) * (sBoolDistribution(sGenerator) ? 1 : -1));
+	}
+
+	void Paddle::StopMotion()
+	{
+		mVelocity.y = 0;
+		mVelocity.x = 0;
 	}
 }

@@ -40,6 +40,8 @@ namespace Pong
 
 		mFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_36_Regular.spritefont");
 
+		srand((unsigned int)time(NULL));
+
 		Game::Initialize();
 
 	}
@@ -66,9 +68,12 @@ namespace Pong
 		{
 			mBall->Velocity().x *= -1;
 
+			// TODO might need to push ball away so that collision doesn't continue
+
 			// TODO Make bloop/blip/bleep
 		}
-		
+			
+
 		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
 		{
 			mPlayer1Score++;
@@ -81,6 +86,35 @@ namespace Pong
 			if (mPlayer2Score < MAXSCORE) mBall->Initialize();
 			else mGameOver = true;
 		}
+
+		if (!mGameOver &&
+			((mBall->Velocity().y < 0 && mPaddle1->Velocity().y >= 0) ||
+			(mBall->Velocity().y > 0 && mPaddle1->Velocity().y <= 0)))
+		{
+			// randomly choose a new velocity for y
+			int32_t yModifier = rand() % 2;
+
+			if (mPaddle1->Velocity().y == 0)
+			{
+				mPaddle1->ResetVelocity();
+			}
+
+			if (mBall->Bounds().Y + mBall->Bounds().Height >= mPaddle1->Bounds().Y + mPaddle1->Bounds().Y ||
+				mBall->Bounds().Y <= mPaddle1->Bounds().Y)
+			{
+				yModifier *= 1;
+			}
+				
+			mPaddle1->Velocity().y *= yModifier;
+		}
+
+		if (mGameOver)
+		{
+			mPaddle1->StopMotion();
+			mPaddle2->StopMotion();
+		}
+
+		
 
 
 		wostringstream subMessageStream1;

@@ -31,6 +31,10 @@ namespace Pong
 
 		void Reset();
 
+		void ResetVelocity();
+
+		void StopMotion();
+
 	private:
 		static const int MinPaddleSpeed;
 		static const int MaxPaddleSpeed;
