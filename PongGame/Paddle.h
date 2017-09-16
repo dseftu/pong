@@ -45,6 +45,7 @@ namespace Pong
 		Library::Rectangle mBounds;
 		DirectX::XMFLOAT2 mVelocity;
 		Library::KeyboardComponent* mKeyboard;
+		
 
 		int mPlayer = 1;
 

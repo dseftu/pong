@@ -47,7 +47,7 @@ namespace Pong
 		mTextureHalfSize.Y = mBounds.Height / 2;
 
 		mKeyboard = reinterpret_cast<KeyboardComponent*>(mGame->Services().GetService(KeyboardComponent::TypeIdClass()));
-				
+		
 		Reset();
 	}
 
@@ -66,18 +66,22 @@ namespace Pong
 
 	void Paddle::AIControl(float elapsedTime)
 	{
+		auto& viewport = mGame->Viewport();		
+		//bool atTopBoundary = (mBounds.Y <= 0);
+		//bool atBottomBoundary = (mBounds.Y + mBounds.Height >= viewport.Height);
+		
+
 		XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime);
-		//mBounds.X += static_cast<int>(std::round(positionDelta.x));
 		mBounds.Y += static_cast<int>(std::round(positionDelta.y));
 
-		auto& viewport = mGame->Viewport();
+		
 		if (mBounds.X + mBounds.Width >= viewport.Width && mVelocity.x > 0.0f)
 		{
 
 		}
 		if (mBounds.X <= 0 && mVelocity.x < 0.0f)
 		{
-
+			
 		}
 
 		if (mBounds.Y + mBounds.Height >= viewport.Height && mVelocity.y > 0.0f)
@@ -92,8 +96,24 @@ namespace Pong
 
 	void Paddle::HumControl(float elapsedTime)
 	{
-		// TODO add human control
 		UNREFERENCED_PARAMETER(elapsedTime);
+
+		// determine if the paddle is at the edge.
+		auto& viewport = mGame->Viewport();
+		bool atBottomBoundary = (mBounds.Y + mBounds.Height >= viewport.Height);
+		bool atTopBoundary = (mBounds.Y <= 0);
+
+		if (mKeyboard->IsKeyDown(Keys::Up) && !atTopBoundary)
+		{
+			XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime*2);
+			mBounds.Y += static_cast<int>(std::round(positionDelta.y));
+		}
+		if (mKeyboard->IsKeyDown(Keys::Down) && !atBottomBoundary)
+		{
+			XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime*2);
+			mBounds.Y -= static_cast<int>(std::round(positionDelta.y));
+		}	
+
 	}
 
 	void Paddle::Draw(const Library::GameTime& gameTime)

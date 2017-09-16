@@ -59,7 +59,15 @@ namespace Pong
 
 		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
 		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
-	
+
+		// Did the ball hit a paddle?
+		if (mBall->Bounds().Intersects(mPaddle1->Bounds()) ||
+			mBall->Bounds().Intersects(mPaddle2->Bounds()))
+		{
+			mBall->Velocity().x *= -1;
+
+			// TODO Make bloop/blip/bleep
+		}
 		
 		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
 		{
