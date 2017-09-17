@@ -31,9 +31,13 @@ namespace Pong
 		virtual void Update(const Library::GameTime& gameTime) override;
 		virtual void Draw(const Library::GameTime& gameTime) override;
 
+		void Ball::StopMotion();
+
 		bool DidPlayerScore(Library::Players player) const;
 		bool DidPlayer1Score() const;
 		bool DidPlayer2Score() const;
+
+		bool DidBallHitWall();
 
 		void Reset();
 
@@ -54,5 +58,6 @@ namespace Pong
 
 		bool mPlayer1Scored;
 		bool mPlayer2Scored;
+		bool mBallHitWall;
 	};
 }

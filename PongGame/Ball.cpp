@@ -65,10 +65,7 @@ namespace Pong
 		auto& viewport = mGame->Viewport();
 		if (mBounds.X + mBounds.Width >= viewport.Width && mVelocity.x > 0.0f)
 		{
-			// TODO remove this, just keeping it for reference
-			//mVelocity.x *= -1;
-			mPlayer1Scored = true;
-			
+			mPlayer1Scored = true;			
 		}
 		if (mBounds.X <= 0 && mVelocity.x < 0.0f)
 		{
@@ -77,10 +74,12 @@ namespace Pong
 
 		if (mBounds.Y + mBounds.Height >= viewport.Height && mVelocity.y > 0.0f)
 		{
+			mBallHitWall = true;
 			mVelocity.y *= -1;
 		}
 		if (mBounds.Y <= 0 && mVelocity.y < 0.0f)
 		{
+			mBallHitWall = true;
 			mVelocity.y *= -1;
 		}
 	}
@@ -91,6 +90,20 @@ namespace Pong
 
 		XMFLOAT2 position(static_cast<float>(mBounds.X), static_cast<float>(mBounds.Y));
 		SpriteManager::DrawTexture2D(mTexture.Get(), position);
+		
+	}
+
+	bool Ball::DidBallHitWall()
+	{
+		if (mBallHitWall)
+		{
+			mBallHitWall = false;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 		
 	}
 
@@ -126,5 +139,11 @@ namespace Pong
 
 		mVelocity.x = static_cast<float>(sSpeedDistribution(sGenerator) * (sBoolDistribution(sGenerator) ? 1 : -1));
 		mVelocity.y = static_cast<float>(sSpeedDistribution(sGenerator) * (sBoolDistribution(sGenerator) ? 1 : -1));
+	}
+
+	void Ball::StopMotion()
+	{
+		mVelocity.y = 0;
+		mVelocity.x = 0;
 	}
 }

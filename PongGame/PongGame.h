@@ -20,14 +20,21 @@ namespace Pong
 
 		virtual void Initialize() override;
 		virtual void Shutdown() override;
-		virtual void Update(const Library::GameTime& gameTime) override;
+		virtual void Update(const Library::GameTime& gameTime) override;		
 		virtual void Draw(const Library::GameTime& gameTime) override;
 
 	private:
 		void Exit();
+		void MakeBlip();
+		void MakeGameOverSound();
+		void MakeScoreSound();
 
 		static const DirectX::XMVECTORF32 BackgroundColor;
 
+		std::shared_ptr<Library::AudioEngineComponent> mAudio;
+		std::shared_ptr<DirectX::SoundEffect> mBlip[6];
+		std::shared_ptr<DirectX::SoundEffect> mScoreSound;
+		std::shared_ptr<DirectX::SoundEffect> mGameOverSound;
 		std::shared_ptr<Library::KeyboardComponent> mKeyboard;
 		std::shared_ptr<Ball> mBall;
 		std::shared_ptr<Paddle> mPaddle1;
@@ -38,8 +45,7 @@ namespace Pong
 	    const std::wstring mGameOverText = L"Game Over!";
 		DirectX::XMFLOAT2 mPlayer1ScoreTextPosition;
 		DirectX::XMFLOAT2 mPlayer2ScoreTextPosition;
-		DirectX::XMFLOAT2 mGameOverTextPosition;
-		
+		DirectX::XMFLOAT2 mGameOverTextPosition;		
 
 		int mPlayer1Score = 0;
 		int mPlayer2Score = 0;

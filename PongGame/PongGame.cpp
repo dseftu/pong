@@ -10,7 +10,7 @@ using namespace Microsoft::WRL;
 
 namespace Pong
 {
-	const XMVECTORF32 PongGame::BackgroundColor = Colors::Black;
+	const XMVECTORF32 PongGame::BackgroundColor = Colors::SteelBlue;
 	const int MAXSCORE = 3;
 
 	PongGame::PongGame(function<void*()> getWindowCallback, function<void(SIZE&)> getRenderTargetSizeCallback) :
@@ -28,6 +28,10 @@ namespace Pong
 		mComponents.push_back(mKeyboard);
 		mServices.AddService(KeyboardComponent::TypeIdClass(), mKeyboard.get());
 
+		mAudio = make_shared<AudioEngineComponent>(*this);
+		mComponents.push_back(mAudio);
+		mServices.AddService(AudioEngineComponent::TypeIdClass(), mAudio.get());
+				
 		mBall = make_shared<Ball>(*this);
 		mComponents.push_back(mBall);
 
@@ -38,12 +42,20 @@ namespace Pong
 		mPaddle2->SetPlayer(2);
 		mComponents.push_back(mPaddle2);
 
+		// Add the sound effects and font
+		mBlip[0] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip1.wav");
+		mBlip[1] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip2.wav");
+		mBlip[2] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip3.wav");
+		mBlip[3] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip4.wav");
+		mBlip[4] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip5.wav");
+		mBlip[5] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip6.wav");
+		mGameOverSound = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongGameOver.wav");
+		mScoreSound = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongScore.wav");
 		mFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_36_Regular.spritefont");
 		
 		srand((unsigned int)time(NULL));	
 
 		Game::Initialize();
-
 	}
 
 	void PongGame::Shutdown()
@@ -57,10 +69,7 @@ namespace Pong
 		if (mKeyboard->WasKeyPressedThisFrame(Keys::Escape))
 		{
 			Exit();
-		}
-
-		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
-		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
+		}		
 
 		// Did the ball hit a paddle?
 		if (mBall->Bounds().Intersects(mPaddle1->Bounds()) ||
@@ -73,31 +82,49 @@ namespace Pong
 				// this makes it so velocity only changes the one time
 				isIntersecting = true; 
 
-				// TODO Make bloop/blip/bleep
+				MakeBlip();				
 			}
 		}
 		else
 		{
 			isIntersecting = false;
 		}
-			
 
+		// Did the ball hit a wall?
+		if (mBall->DidBallHitWall()) MakeBlip();
+			
+		// did a player score?
 		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
 		{
+			MakeScoreSound();
 			mPlayer1Score++;
 			if (mPlayer1Score < MAXSCORE)
 			{
-				mBall->Initialize();				
+				MakeScoreSound();
+				mBall->Initialize();
 			}
-			else mGameOver = true;
+			else
+			{
+				MakeGameOverSound();
+				mGameOver = true;
+			}
 		}
 		else if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player2))
-		{
+		{			
 			mPlayer2Score++;
-			if (mPlayer2Score < MAXSCORE) mBall->Initialize();
-			else mGameOver = true;
+			if (mPlayer2Score < MAXSCORE)
+			{
+				MakeScoreSound();
+				mBall->Initialize();
+			}
+			else
+			{
+				MakeGameOverSound();
+				mGameOver = true;
+			}
 		}
 
+		// this randomly adjusts velocity of AI paddle
 		if (!mGameOver &&
 			((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
 			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0)))
@@ -105,30 +132,30 @@ namespace Pong
 			// randomly choose a new velocity for y
 			int32_t yModifier = rand() % 2;
 
-			if (mPaddle2->Velocity().y == 0)
+			if (yModifier == 0)
 			{
 				mPaddle2->ResetVelocity();
-			}
-
-			if (mBall->Bounds().Y + mBall->Bounds().Height >= mPaddle2->Bounds().Y + mPaddle2->Bounds().Y ||
-				mBall->Bounds().Y <= mPaddle2->Bounds().Y)
-			{
-				yModifier *= 1;
-			}
-				
-			mPaddle2->Velocity().y *= yModifier;
+			}			
 		}
 
+		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
+		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
+
+		// did the game end?
 		if (mGameOver)
 		{
+			// freeze motion
 			mPaddle1->StopMotion();
 			mPaddle2->StopMotion();
+			mBall->StopMotion();
 
+			// display the game over text
 			XMVECTOR messageSize = mFont->MeasureString(mGameOverText.c_str());
 			XMStoreFloat2(&mGameOverTextPosition, (viewportSize - messageSize) / 2);
 			mGameOverTextPosition.y -= XMVectorGetY(messageSize);
 		}
 
+		// update the score texts
 		wostringstream subMessageStream1;
 		subMessageStream1 << mPlayer1Score;
 
@@ -149,11 +176,25 @@ namespace Pong
 		mPlayer2ScoreTextPosition.x += 150;
 		mPlayer2ScoreTextPosition.y = 50;
 
-		
-
-
 		Game::Update(gameTime);
 	}
+
+	void PongGame::MakeBlip()
+	{
+		int32_t chooseBlip = rand() % 5;
+		mBlip[chooseBlip]->Play();
+	}
+
+	void PongGame::MakeGameOverSound()
+	{
+		mGameOverSound->Play();
+	}
+
+	void PongGame::MakeScoreSound()
+	{
+		mScoreSound->Play();
+	}
+
 
 	void PongGame::Draw(const GameTime &gameTime)
 	{

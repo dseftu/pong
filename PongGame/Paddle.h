@@ -39,6 +39,7 @@ namespace Pong
 		static const int MinPaddleSpeed;
 		static const int MaxPaddleSpeed;
 		static const int HumanControlledSpeed;
+		static const int WallOffset;
 
 		static std::random_device sDevice;
 		static std::default_random_engine sGenerator;

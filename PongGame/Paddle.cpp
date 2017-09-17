@@ -11,6 +11,7 @@ namespace Pong
 	const int Paddle::MinPaddleSpeed = 200;
 	const int Paddle::MaxPaddleSpeed = 400;
 	const int Paddle::HumanControlledSpeed = 450;
+	const int Paddle::WallOffset = 100;
 
 	random_device Paddle::sDevice;
 	default_random_engine Paddle::sGenerator(sDevice());
@@ -74,13 +75,11 @@ namespace Pong
 
 		if (mBounds.Y + mBounds.Height >= viewport.Height && mVelocity.y > 0.0f)
 		{
-			mBounds.Y = (int32_t)viewport.Height - mBounds.Height;
-			mVelocity.y *= -1;
+			mBounds.Y = (int32_t)viewport.Height - mBounds.Height;			
 		}
 		if (mBounds.Y <= 0 && mVelocity.y < 0.0f)
 		{
 			mBounds.Y = 0;
-			mVelocity.y *= -1;
 		}
 	}
 
@@ -120,13 +119,13 @@ namespace Pong
 
 		if (mPlayer == 1)
 		{
-			mBounds.X = 50;
+			mBounds.X = WallOffset;
 			mVelocity.y = HumanControlledSpeed;
 		}
 		else
 		{
-			mBounds.X = viewportSize.Right() - 50;
-			mVelocity.y = -static_cast<float>(sSpeedDistribution(sGenerator));
+			mBounds.X = viewportSize.Right() - WallOffset;
+			mVelocity.y = static_cast<float>(sSpeedDistribution(sGenerator));
 		}
 
 		mBounds.Y = center.Y - mTextureHalfSize.Y;

@@ -21,7 +21,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
 	ThrowIfFailed(CoInitializeEx(nullptr, COINITBASE_MULTITHREADED), "Error initializing COM.");
 
 	static const wstring windowClassName = L"PongClass";
-	static const wstring windowTitle = L"Bouncing Ball";
+	static const wstring windowTitle = L"Pong!";
 
 	HWND windowHandle;
 	WNDCLASSEX window;	
@@ -40,7 +40,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR command
 	PongGame game(getWindow, getRenderTargetSize);
 	game.UpdateRenderTargetSize();
 	game.Initialize();
-
+	
 	MSG message = { 0 };
 
 	try

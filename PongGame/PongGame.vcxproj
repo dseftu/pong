@@ -70,7 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(DXSDK_DIR)\Lib\x86</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
@@ -143,9 +145,21 @@ IF EXIST "$(ProjectDir)content" xcopy /E /Y "$(ProjectDir)Content" "$(OutDir)Con
   </ItemGroup>
   <ItemGroup>
     <Image Include="Content\Textures\Ball.png" />
+    <Image Include="Content\Textures\Paddle.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\Fonts\Arial_36_Regular.spritefont" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Content\Audio\PongBlip1.wav" />
+    <Media Include="Content\Audio\PongBlip2.wav" />
+    <Media Include="Content\Audio\PongBlip3.wav" />
+    <Media Include="Content\Audio\PongBlip4.wav" />
+    <Media Include="Content\Audio\PongBlip5.wav" />
+    <Media Include="Content\Audio\PongBlip6.wav" />
+    <Media Include="Content\Audio\PongGameOver.wav" />
+    <Media Include="Content\Audio\PongScore.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
