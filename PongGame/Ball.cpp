@@ -91,6 +91,7 @@ namespace Pong
 
 		XMFLOAT2 position(static_cast<float>(mBounds.X), static_cast<float>(mBounds.Y));
 		SpriteManager::DrawTexture2D(mTexture.Get(), position);
+		
 	}
 
 	bool Ball::DidPlayerScore(Library::Players player) const
