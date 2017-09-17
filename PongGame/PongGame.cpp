@@ -66,11 +66,16 @@ namespace Pong
 		if (mBall->Bounds().Intersects(mPaddle1->Bounds()) ||
 			mBall->Bounds().Intersects(mPaddle2->Bounds()))
 		{
-			mBall->Velocity().x *= -1;
-
-			// TODO might need to push ball away so that collision doesn't continue
-
-			// TODO Make bloop/blip/bleep
+			if (!isIntersecting)
+			{
+				mBall->Velocity().x *= -1;
+				isIntersecting = true;
+				// TODO Make bloop/blip/bleep
+			}
+		}
+		else
+		{
+			isIntersecting = false;
 		}
 			
 
