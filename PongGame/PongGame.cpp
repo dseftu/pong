@@ -39,8 +39,8 @@ namespace Pong
 		mComponents.push_back(mPaddle2);
 
 		mFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_36_Regular.spritefont");
-
-		srand((unsigned int)time(NULL));
+		
+		srand((unsigned int)time(NULL));	
 
 		Game::Initialize();
 
@@ -69,7 +69,10 @@ namespace Pong
 			if (!isIntersecting)
 			{
 				mBall->Velocity().x *= -1;
-				isIntersecting = true;
+
+				// this makes it so velocity only changes the one time
+				isIntersecting = true; 
+
 				// TODO Make bloop/blip/bleep
 			}
 		}
@@ -82,7 +85,10 @@ namespace Pong
 		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
 		{
 			mPlayer1Score++;
-			if (mPlayer1Score < MAXSCORE) mBall->Initialize();
+			if (mPlayer1Score < MAXSCORE)
+			{
+				mBall->Initialize();				
+			}
 			else mGameOver = true;
 		}
 		else if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player2))
@@ -93,34 +99,35 @@ namespace Pong
 		}
 
 		if (!mGameOver &&
-			((mBall->Velocity().y < 0 && mPaddle1->Velocity().y >= 0) ||
-			(mBall->Velocity().y > 0 && mPaddle1->Velocity().y <= 0)))
+			((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
+			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0)))
 		{
 			// randomly choose a new velocity for y
 			int32_t yModifier = rand() % 2;
 
-			if (mPaddle1->Velocity().y == 0)
+			if (mPaddle2->Velocity().y == 0)
 			{
-				mPaddle1->ResetVelocity();
+				mPaddle2->ResetVelocity();
 			}
 
-			if (mBall->Bounds().Y + mBall->Bounds().Height >= mPaddle1->Bounds().Y + mPaddle1->Bounds().Y ||
-				mBall->Bounds().Y <= mPaddle1->Bounds().Y)
+			if (mBall->Bounds().Y + mBall->Bounds().Height >= mPaddle2->Bounds().Y + mPaddle2->Bounds().Y ||
+				mBall->Bounds().Y <= mPaddle2->Bounds().Y)
 			{
 				yModifier *= 1;
 			}
 				
-			mPaddle1->Velocity().y *= yModifier;
+			mPaddle2->Velocity().y *= yModifier;
 		}
 
 		if (mGameOver)
 		{
 			mPaddle1->StopMotion();
 			mPaddle2->StopMotion();
+
+			XMVECTOR messageSize = mFont->MeasureString(mGameOverText.c_str());
+			XMStoreFloat2(&mGameOverTextPosition, (viewportSize - messageSize) / 2);
+			mGameOverTextPosition.y -= XMVectorGetY(messageSize);
 		}
-
-		
-
 
 		wostringstream subMessageStream1;
 		subMessageStream1 << mPlayer1Score;
@@ -158,6 +165,11 @@ namespace Pong
 		// draw the new scores
 		SpriteManager::DrawString(mFont, mPlayer1ScoreText.c_str(), mPlayer1ScoreTextPosition);
 		SpriteManager::DrawString(mFont, mPlayer2ScoreText.c_str(), mPlayer2ScoreTextPosition);
+
+		if (mGameOver)
+		{
+			SpriteManager::DrawString(mFont, mGameOverText.c_str(), mGameOverTextPosition);
+		}
 
 		HRESULT hr = mSwapChain->Present(1, 0);
 		

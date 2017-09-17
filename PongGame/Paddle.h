@@ -26,7 +26,7 @@ namespace Pong
 		virtual void SetPlayer(int mPlayer);
 		virtual void Update(const Library::GameTime& gameTime) override;
 		void AIControl(float elapsedTime);
-		void HumControl(float elapsedTime);
+		void HumanControl(float elapsedTime);
 		virtual void Draw(const Library::GameTime& gameTime) override;
 
 		void Reset();
@@ -38,6 +38,7 @@ namespace Pong
 	private:
 		static const int MinPaddleSpeed;
 		static const int MaxPaddleSpeed;
+		static const int HumanControlledSpeed;
 
 		static std::random_device sDevice;
 		static std::default_random_engine sGenerator;

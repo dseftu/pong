@@ -35,8 +35,11 @@ namespace Pong
 		std::shared_ptr<DirectX::SpriteFont> mFont;
 		std::wstring mPlayer1ScoreText;
 		std::wstring mPlayer2ScoreText;
+	    const std::wstring mGameOverText = L"Game Over!";
 		DirectX::XMFLOAT2 mPlayer1ScoreTextPosition;
 		DirectX::XMFLOAT2 mPlayer2ScoreTextPosition;
+		DirectX::XMFLOAT2 mGameOverTextPosition;
+		
 
 		int mPlayer1Score = 0;
 		int mPlayer2Score = 0;

@@ -8,8 +8,9 @@ using namespace Microsoft::WRL;
 
 namespace Pong
 {
-	const int Paddle::MinPaddleSpeed = 100;
+	const int Paddle::MinPaddleSpeed = 200;
 	const int Paddle::MaxPaddleSpeed = 400;
+	const int Paddle::HumanControlledSpeed = 450;
 
 	random_device Paddle::sDevice;
 	default_random_engine Paddle::sGenerator(sDevice());
@@ -54,18 +55,14 @@ namespace Pong
 	void Paddle::SetPlayer(int player)
 	{
 		mPlayer = player;
-		if (mPlayer == 2)
-		{
-			mVelocity.y = 300;
-		}
 	}
 
 	void Paddle::Update(const Library::GameTime& gameTime)
 	{
 		float elapsedTime = gameTime.ElapsedGameTimeSeconds().count();
 
-		if (mPlayer == 1) AIControl(elapsedTime);
-		else HumControl(elapsedTime);
+		if (mPlayer == 2) AIControl(elapsedTime);
+		else HumanControl(elapsedTime);
 	}
 
 	void Paddle::AIControl(float elapsedTime)
@@ -87,9 +84,8 @@ namespace Pong
 		}
 	}
 
-	void Paddle::HumControl(float elapsedTime)
+	void Paddle::HumanControl(float elapsedTime)
 	{
-
 		// determine if the paddle is at the edge.
 		auto& viewport = mGame->Viewport();
 		bool atBottomBoundary = (mBounds.Y + mBounds.Height >= viewport.Height);
@@ -97,15 +93,14 @@ namespace Pong
 
 		if (mKeyboard->IsKeyDown(Keys::Up) && !atTopBoundary)
 		{
-			XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime*2);
-			mBounds.Y += static_cast<int>(std::round(positionDelta.y));
+			XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime);
+			mBounds.Y -= static_cast<int>(std::round(positionDelta.y));
 		}
 		if (mKeyboard->IsKeyDown(Keys::Down) && !atBottomBoundary)
 		{
-			XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime*2);
-			mBounds.Y -= static_cast<int>(std::round(positionDelta.y));
+			XMFLOAT2 positionDelta(0, mVelocity.y * elapsedTime);
+			mBounds.Y += static_cast<int>(std::round(positionDelta.y));
 		}	
-
 	}
 
 	void Paddle::Draw(const Library::GameTime& gameTime)
@@ -116,27 +111,26 @@ namespace Pong
 		SpriteManager::DrawTexture2D(mTexture.Get(), position);
 	}
 
-
-
 	void Paddle::Reset()
 	{
 		Library::Rectangle viewportSize(static_cast<int>(mGame->Viewport().TopLeftX), static_cast<int>(mGame->Viewport().TopLeftY), static_cast<int>(mGame->Viewport().Width), static_cast<int>(mGame->Viewport().Height));
 		Point center = viewportSize.Center();
 		
+		mVelocity.x = 0;
+
 		if (mPlayer == 1)
 		{
 			mBounds.X = 50;
+			mVelocity.y = HumanControlledSpeed;
 		}
 		else
 		{
 			mBounds.X = viewportSize.Right() - 50;
+			mVelocity.y = -static_cast<float>(sSpeedDistribution(sGenerator));
 		}
-		
+
 		mBounds.Y = center.Y - mTextureHalfSize.Y;
-
-		mVelocity.x = 0;
-
-		mVelocity.y = -static_cast<float>(sSpeedDistribution(sGenerator));
+		
 	}
 
 	void Paddle::ResetVelocity()
