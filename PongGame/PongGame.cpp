@@ -125,18 +125,21 @@ namespace Pong
 		}
 
 		// this randomly adjusts velocity of AI paddle
-		if (!mGameOver &&
-			((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
-			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0)))
-		{
-			// randomly choose a new velocity for y
-			int32_t yModifier = rand() % 2;
+		bool ballChangedDirection = ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
+			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0));
+		int32_t yModifier = rand() % 2;
 
-			if (yModifier == 0)
-			{
-				mPaddle2->ResetVelocity();
-			}			
+		if (!mGameOver && ballChangedDirection)
+		{
+			if (yModifier == 0) mPaddle2->ResetVelocity();
 		}
+
+		if ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y > 0) ||
+			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y < 0))
+		{
+			if (yModifier == 0) mPaddle2->Velocity().y *= -1;
+		}
+
 
 		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
 		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);

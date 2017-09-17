@@ -47,8 +47,8 @@ namespace Pong
 		DirectX::XMFLOAT2 mPlayer2ScoreTextPosition;
 		DirectX::XMFLOAT2 mGameOverTextPosition;		
 
-		int mPlayer1Score = 0;
-		int mPlayer2Score = 0;
+		int32_t mPlayer1Score = 0;
+		int32_t mPlayer2Score = 0;
 		bool mGameOver = false;
 		bool isIntersecting = false;
 	};
