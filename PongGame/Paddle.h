@@ -9,7 +9,6 @@
 namespace Library
 {
 	class KeyboardComponent;
-
 }
 
 namespace Pong
@@ -31,14 +30,12 @@ namespace Pong
 
 		void Reset();
 
-		void ResetVelocity();
+		void ResetVelocity(bool positive);
 
 		void StopMotion();
 
 	private:
-		static const int MinPaddleSpeed;
-		static const int MaxPaddleSpeed;
-		static const int HumanControlledSpeed;
+		static const float PaddleSpeed;
 		static const int WallOffset;
 
 		static std::random_device sDevice;
@@ -52,8 +49,10 @@ namespace Pong
 		DirectX::XMFLOAT2 mVelocity;
 		Library::KeyboardComponent* mKeyboard;
 		
-
 		int mPlayer = 1;
+
+		float lastMoveTime = 0.0f;
+		float nextMoveTime = 0.0f;
 
 	};
 }

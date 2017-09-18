@@ -9,7 +9,7 @@ using namespace Microsoft::WRL;
 namespace Pong
 {
 	const int Ball::MinBallSpeed = 200;
-	const int Ball::MaxBallSpeed = 400;
+	const int Ball::MaxBallSpeed = 300;
 
 	random_device Ball::sDevice;
 	default_random_engine Ball::sGenerator(sDevice());

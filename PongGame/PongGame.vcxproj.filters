@@ -67,6 +67,9 @@
     <None Include="Content\Fonts\Arial_36_Regular.spritefont">
       <Filter>Resource Files\Fonts</Filter>
     </None>
+    <None Include="Content\Fonts\Arial_14_Regular.spritefont">
+      <Filter>Resource Files\Fonts</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Media Include="Content\Audio\PongBlip1.wav">

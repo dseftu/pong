@@ -148,6 +148,7 @@ IF EXIST "$(ProjectDir)content" xcopy /E /Y "$(ProjectDir)Content" "$(OutDir)Con
     <Image Include="Content\Textures\Paddle.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\Fonts\Arial_14_Regular.spritefont" />
     <None Include="Content\Fonts\Arial_36_Regular.spritefont" />
     <None Include="packages.config" />
   </ItemGroup>

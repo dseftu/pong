@@ -52,10 +52,12 @@ namespace Pong
 		mGameOverSound = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongGameOver.wav");
 		mScoreSound = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongScore.wav");
 		mFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_36_Regular.spritefont");
+		mSmallFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_14_Regular.spritefont");
 		
 		srand((unsigned int)time(NULL));	
 
 		Game::Initialize();
+		FreezeMotion();
 	}
 
 	void PongGame::Shutdown()
@@ -68,15 +70,94 @@ namespace Pong
 	{
 		HandleKeyboardInput();
 
-		HandleBallPhysics();
-
-		AdjustAIPaddleVelocity();
-
-		if (mGameOver) ShowGameOver();
-
-		UpdatePlayerScores();
+		if (mGamestate == Gamestate::Initial)
+		{
+			ShowDirectionsText();
+			ShowLogoText();
+		}
+		if (mGamestate == Gamestate::Playing)
+		{
+			HandleBallPhysics();			
+			AdjustAIPaddleVelocity();
+			UpdatePlayerScores();
+		}		
+		if (mGamestate == Gamestate::Gameover)
+		{
+			ShowGameOver();
+			ShowDirectionsText();
+		}
 
 		Game::Update(gameTime);
+	}
+
+	void PongGame::Draw(const GameTime &gameTime)
+	{
+		mDirect3DDeviceContext->ClearRenderTargetView(mRenderTargetView.Get(), reinterpret_cast<const float*>(&BackgroundColor));
+		mDirect3DDeviceContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		Game::Draw(gameTime);
+
+		if (mGamestate == Gamestate::Initial)
+		{
+			SpriteManager::DrawString(mFont, mPongText.c_str(), mPongTextPosition);
+			SpriteManager::DrawString(mSmallFont, mDirectionsText.c_str(), mDirectionsTextPosition);
+		}
+		else if (mGamestate == Gamestate::Playing)
+		{
+			SpriteManager::DrawString(mFont, mPlayer1ScoreText.c_str(), mPlayer1ScoreTextPosition);
+			SpriteManager::DrawString(mFont, mPlayer2ScoreText.c_str(), mPlayer2ScoreTextPosition);
+		}
+		else if (mGamestate == Gamestate::Gameover)
+		{
+			SpriteManager::DrawString(mFont, mGameOverText.c_str(), mGameOverTextPosition);
+			SpriteManager::DrawString(mSmallFont, mDirectionsText.c_str(), mDirectionsTextPosition);
+		}
+
+		HRESULT hr = mSwapChain->Present(1, 0);
+
+		// If the device was removed either by a disconnection or a driver upgrade, we must recreate all device resources.
+		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+		{
+			HandleDeviceLost();
+		}
+		else
+		{
+			ThrowIfFailed(hr, "IDXGISwapChain::Present() failed.");
+		}
+	}
+
+	void PongGame::Exit()
+	{
+		PostQuitMessage(0);
+	}
+
+	void PongGame::ChangeGameState(Gamestate newGamestate)
+	{
+		if (mGamestate == Gamestate::Initial || mGamestate == Gamestate::Gameover)
+		{
+			// transitioning to playing
+			Game::Initialize();
+			mPlayer1Score = 0;
+			mPlayer2Score = 0;
+		}
+		else if (mGamestate == Gamestate::Playing)
+		{
+			// transitioning to gameover
+			FreezeMotion();
+			MakeGameOverSound();
+		}
+
+		mGamestate = newGamestate;
+	}
+
+	bool PongGame::IsBallAboveAIPaddle()
+	{
+		return mBall->Bounds().Top() - mPaddle2->Bounds().Height < mPaddle2->Bounds().Top();
+	}
+
+	bool PongGame::IsBallBelowAIPaddle()
+	{
+		return mBall->Bounds().Bottom() + mPaddle2->Bounds().Height > mPaddle2->Bounds().Bottom();
 	}
 
 	void PongGame::HandleKeyboardInput()
@@ -86,7 +167,13 @@ namespace Pong
 			Exit();
 		}
 
-		//TODO add a way to restart the game with space
+		if (mGamestate != Gamestate::Playing)
+		{
+			if (mKeyboard->WasKeyPressedThisFrame(Keys::Space))
+			{
+				ChangeGameState(Gamestate::Playing);
+			}
+		}
 	}
 
 	void PongGame::HandleBallPhysics()
@@ -97,9 +184,7 @@ namespace Pong
 		{
 			if (!isIntersecting)
 			{
-				mBall->Velocity().x *= -1;
-
-				// TODO increase ball speed
+				mBall->Velocity().x *= -1.0f;
 
 				// this makes it so velocity only changes the one time
 				isIntersecting = true;
@@ -117,46 +202,67 @@ namespace Pong
 	}
 
 	void PongGame::AdjustAIPaddleVelocity()
-	{
-		// this randomly adjusts velocity of AI paddle
-		bool ballChangedDirection = ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
-			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0));
-
-		int32_t yModifier = rand() % 2;
-
-		if (!mGameOver && ballChangedDirection)
+	{		
+		if (mBall->Velocity().x < 0)
 		{
-			if (yModifier == 0) mPaddle2->ResetVelocity();
+			mPaddle2->Velocity().x = 0.0f;
 		}
-
-		if ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y > 0) ||
-			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y < 0))
+		else if (IsBallBelowAIPaddle() && mPaddle2->Velocity().y <= 0)
 		{
-			if (yModifier == 0) mPaddle2->Velocity().y *= -1;
+			mPaddle2->ResetVelocity(true);
 		}
+		else if (IsBallAboveAIPaddle() && mPaddle2->Velocity().y >= 0)
+		{
+			mPaddle2->ResetVelocity(false);
+		}
+		
 	}
 
 	void PongGame::ShowGameOver()
 	{
 		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
 		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
-		
-		// freeze motion
-		mPaddle1->StopMotion();
-		mPaddle2->StopMotion();
-		mBall->StopMotion();
 
 		// display the game over text
 		XMVECTOR messageSize = mFont->MeasureString(mGameOverText.c_str());
 		XMStoreFloat2(&mGameOverTextPosition, (viewportSize - messageSize) / 2);
-		mGameOverTextPosition.y -= XMVectorGetY(messageSize);
-		
+		mGameOverTextPosition.y -= XMVectorGetY(messageSize);		
+	}
+
+	void PongGame::ShowDirectionsText()
+	{
+		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
+		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
+
+		// display the directions text
+		XMVECTOR messageSize = mSmallFont->MeasureString(mDirectionsText.c_str());
+		XMVECTOR gameOverMessageSize = mFont->MeasureString(mGameOverText.c_str());
+		XMStoreFloat2(&mDirectionsTextPosition, (viewportSize - messageSize) / 2);
+		mDirectionsTextPosition.y -= (XMVectorGetY(messageSize) - (XMVectorGetY(gameOverMessageSize) * 1.05f));
+	}
+
+	void PongGame::ShowLogoText()
+	{
+		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
+		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
+
+		// display the game over text
+		XMVECTOR messageSize = mFont->MeasureString(mPongText.c_str());
+		XMStoreFloat2(&mPongTextPosition, (viewportSize - messageSize) / 2);
+		mPongTextPosition.y -= XMVectorGetY(messageSize);
+	}
+	
+	void PongGame::FreezeMotion()
+	{
+		mPaddle1->StopMotion();
+		mPaddle2->StopMotion();
+		mBall->StopMotion();
 	}
 
 	void PongGame::UpdatePlayerScores()
 	{
 		// did a player score?
-		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
+		if (mBall->DidPlayerScore(Library::Players::Player1))
 		{
 			MakeScoreSound();
 			mPlayer1Score++;
@@ -167,11 +273,10 @@ namespace Pong
 			}
 			else
 			{
-				MakeGameOverSound();
-				mGameOver = true;
+				ChangeGameState(Gamestate::Gameover);				
 			}
 		}
-		else if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player2))
+		else if (mBall->DidPlayerScore(Library::Players::Player2))
 		{
 			mPlayer2Score++;
 			if (mPlayer2Score < MAXSCORE)
@@ -181,8 +286,7 @@ namespace Pong
 			}
 			else
 			{
-				MakeGameOverSound();
-				mGameOver = true;
+				ChangeGameState(Gamestate::Gameover);
 			}
 		}
 
@@ -194,7 +298,8 @@ namespace Pong
 		subMessageStream1 << mPlayer1Score;
 
 		wostringstream subMessageStream2;
-		subMessageStream2 << mPlayer2Score;
+		//subMessageStream2 << mPlayer2Score;
+		subMessageStream2 << mPaddle2->Velocity().y;
 
 		// update player 1 text
 		mPlayer1ScoreText = subMessageStream1.str();
@@ -227,37 +332,4 @@ namespace Pong
 		mScoreSound->Play();
 	}
 
-	void PongGame::Draw(const GameTime &gameTime)
-	{
-		mDirect3DDeviceContext->ClearRenderTargetView(mRenderTargetView.Get(), reinterpret_cast<const float*>(&BackgroundColor));
-		mDirect3DDeviceContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-				
-		Game::Draw(gameTime);
-
-		// draw the new scores
-		SpriteManager::DrawString(mFont, mPlayer1ScoreText.c_str(), mPlayer1ScoreTextPosition);
-		SpriteManager::DrawString(mFont, mPlayer2ScoreText.c_str(), mPlayer2ScoreTextPosition);
-
-		if (mGameOver)
-		{
-			SpriteManager::DrawString(mFont, mGameOverText.c_str(), mGameOverTextPosition);
-		}
-
-		HRESULT hr = mSwapChain->Present(1, 0);
-		
-		// If the device was removed either by a disconnection or a driver upgrade, we must recreate all device resources.
-		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
-		{
-			HandleDeviceLost();
-		}
-		else
-		{
-			ThrowIfFailed(hr, "IDXGISwapChain::Present() failed.");
-		}
-	}
-
-	void PongGame::Exit()
-	{
-		PostQuitMessage(0);
-	}
 }

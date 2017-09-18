@@ -8,15 +8,10 @@ using namespace Microsoft::WRL;
 
 namespace Pong
 {
-	const int Paddle::MinPaddleSpeed = 200;
-	const int Paddle::MaxPaddleSpeed = 400;
-	const int Paddle::HumanControlledSpeed = 450;
+	const float Paddle::PaddleSpeed = 250.0f;
 	const int Paddle::WallOffset = 100;
 
 	random_device Paddle::sDevice;
-	default_random_engine Paddle::sGenerator(sDevice());
-	uniform_int_distribution<int> Paddle::sBoolDistribution(0, 1);
-	uniform_int_distribution<int> Paddle::sSpeedDistribution(MinPaddleSpeed, MaxPaddleSpeed);
 
 	Paddle::Paddle(Game& game) :
 		DrawableGameComponent(game), mBounds(Rectangle::Empty)
@@ -115,26 +110,31 @@ namespace Pong
 		Library::Rectangle viewportSize(static_cast<int>(mGame->Viewport().TopLeftX), static_cast<int>(mGame->Viewport().TopLeftY), static_cast<int>(mGame->Viewport().Width), static_cast<int>(mGame->Viewport().Height));
 		Point center = viewportSize.Center();
 		
-		mVelocity.x = 0;
+		ResetVelocity(true);
 
 		if (mPlayer == 1)
 		{
 			mBounds.X = WallOffset;
-			mVelocity.y = HumanControlledSpeed;
 		}
 		else
 		{
-			mBounds.X = viewportSize.Right() - WallOffset;
-			mVelocity.y = static_cast<float>(sSpeedDistribution(sGenerator));
+			mBounds.X = viewportSize.Right() - WallOffset;			
 		}
 
-		mBounds.Y = center.Y - mTextureHalfSize.Y;
-		
+		mBounds.Y = center.Y - mTextureHalfSize.Y;		
 	}
 
-	void Paddle::ResetVelocity()
+	void Paddle::ResetVelocity(bool positive)
 	{
-		mVelocity.y = static_cast<float>(sSpeedDistribution(sGenerator) * (sBoolDistribution(sGenerator) ? 1 : -1));
+		mVelocity.x = 0;
+		if (positive)
+		{
+			mVelocity.y = PaddleSpeed;
+		}
+		else
+		{
+			mVelocity.y = -PaddleSpeed;
+		}		
 	}
 
 	void Paddle::StopMotion()
