@@ -28,6 +28,11 @@ namespace Pong
 		void MakeBlip();
 		void MakeGameOverSound();
 		void MakeScoreSound();
+		void UpdatePlayerScores();
+		void ShowGameOver();
+		void AdjustAIPaddleVelocity();
+		void HandleBallPhysics();
+		void HandleKeyboardInput();
 
 		static const DirectX::XMVECTORF32 BackgroundColor;
 

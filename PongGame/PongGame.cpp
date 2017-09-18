@@ -66,11 +66,31 @@ namespace Pong
 
 	void PongGame::Update(const GameTime &gameTime)
 	{
+		HandleKeyboardInput():
+
+		HandleBallPhysics();
+
+		AdjustAIPaddleVelocity();
+
+		if (mGameOver) ShowGameOver();
+
+		UpdatePlayerScores();
+
+		Game::Update(gameTime);
+	}
+
+	void PongGame::HandleKeyboardInput()
+	{
 		if (mKeyboard->WasKeyPressedThisFrame(Keys::Escape))
 		{
 			Exit();
-		}		
+		}
 
+		//TODO add a way to restart the game with space
+	}
+
+	void PongGame::HandleBallPhysics()
+	{
 		// Did the ball hit a paddle?
 		if (mBall->Bounds().Intersects(mPaddle1->Bounds()) ||
 			mBall->Bounds().Intersects(mPaddle2->Bounds()))
@@ -80,9 +100,9 @@ namespace Pong
 				mBall->Velocity().x *= -1;
 
 				// this makes it so velocity only changes the one time
-				isIntersecting = true; 
+				isIntersecting = true;
 
-				MakeBlip();				
+				MakeBlip();
 			}
 		}
 		else
@@ -92,7 +112,46 @@ namespace Pong
 
 		// Did the ball hit a wall?
 		if (mBall->DidBallHitWall()) MakeBlip();
-			
+	}
+
+	void PongGame::AdjustAIPaddleVelocity()
+	{
+		// this randomly adjusts velocity of AI paddle
+		bool ballChangedDirection = ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
+			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0));
+
+		int32_t yModifier = rand() % 2;
+
+		if (!mGameOver && ballChangedDirection)
+		{
+			if (yModifier == 0) mPaddle2->ResetVelocity();
+		}
+
+		if ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y > 0) ||
+			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y < 0))
+		{
+			if (yModifier == 0) mPaddle2->Velocity().y *= -1;
+		}
+	}
+	void PongGame::ShowGameOver()
+	{
+		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
+		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
+		
+		// freeze motion
+		mPaddle1->StopMotion();
+		mPaddle2->StopMotion();
+		mBall->StopMotion();
+
+		// display the game over text
+		XMVECTOR messageSize = mFont->MeasureString(mGameOverText.c_str());
+		XMStoreFloat2(&mGameOverTextPosition, (viewportSize - messageSize) / 2);
+		mGameOverTextPosition.y -= XMVectorGetY(messageSize);
+		
+	}
+
+	void PongGame::UpdatePlayerScores()
+	{
 		// did a player score?
 		if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player1))
 		{
@@ -110,7 +169,7 @@ namespace Pong
 			}
 		}
 		else if (!mGameOver && mBall->DidPlayerScore(Library::Players::Player2))
-		{			
+		{
 			mPlayer2Score++;
 			if (mPlayer2Score < MAXSCORE)
 			{
@@ -124,39 +183,8 @@ namespace Pong
 			}
 		}
 
-		// this randomly adjusts velocity of AI paddle
-		bool ballChangedDirection = ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y >= 0) ||
-			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y <= 0));
-		int32_t yModifier = rand() % 2;
-
-		if (!mGameOver && ballChangedDirection)
-		{
-			if (yModifier == 0) mPaddle2->ResetVelocity();
-		}
-
-		if ((mBall->Velocity().y < 0 && mPaddle2->Velocity().y > 0) ||
-			(mBall->Velocity().y > 0 && mPaddle2->Velocity().y < 0))
-		{
-			if (yModifier == 0) mPaddle2->Velocity().y *= -1;
-		}
-
-
 		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
 		XMVECTOR viewportSize = XMLoadFloat2(&tempViewportSize);
-
-		// did the game end?
-		if (mGameOver)
-		{
-			// freeze motion
-			mPaddle1->StopMotion();
-			mPaddle2->StopMotion();
-			mBall->StopMotion();
-
-			// display the game over text
-			XMVECTOR messageSize = mFont->MeasureString(mGameOverText.c_str());
-			XMStoreFloat2(&mGameOverTextPosition, (viewportSize - messageSize) / 2);
-			mGameOverTextPosition.y -= XMVectorGetY(messageSize);
-		}
 
 		// update the score texts
 		wostringstream subMessageStream1;
@@ -178,8 +206,6 @@ namespace Pong
 		XMStoreFloat2(&mPlayer2ScoreTextPosition, (viewportSize - messageSize) / 2);
 		mPlayer2ScoreTextPosition.x += 150;
 		mPlayer2ScoreTextPosition.y = 50;
-
-		Game::Update(gameTime);
 	}
 
 	void PongGame::MakeBlip()
