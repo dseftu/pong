@@ -43,14 +43,14 @@ namespace Pong
 		mComponents.push_back(mPaddle2);
 
 		// Add the sound effects and font
-		mBlip[0] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip1.wav");
-		mBlip[1] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip2.wav");
-		mBlip[2] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip3.wav");
-		mBlip[3] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip4.wav");
-		mBlip[4] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip5.wav");
-		mBlip[5] = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip6.wav");
-		mGameOverSound = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongGameOver.wav");
-		mScoreSound = std::make_shared<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongScore.wav");
+		mBlip[0] = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip1.wav");
+		mBlip[1] = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip2.wav");
+		mBlip[2] = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip3.wav");
+		mBlip[3] = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip4.wav");
+		mBlip[4] = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip5.wav");
+		mBlip[5] = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongBlip6.wav");
+		mGameOverSound = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongGameOver.wav");
+		mScoreSound = std::make_unique<SoundEffect>(mAudio->AudioEngine().get(), L"Content\\Audio\\PongScore.wav");
 		mFont = make_shared<SpriteFont>(mDirect3DDevice.Get(), L"Content\\Fonts\\Arial_36_Regular.spritefont");
 		
 		srand((unsigned int)time(NULL));	
@@ -66,7 +66,7 @@ namespace Pong
 
 	void PongGame::Update(const GameTime &gameTime)
 	{
-		HandleKeyboardInput():
+		HandleKeyboardInput();
 
 		HandleBallPhysics();
 
@@ -98,6 +98,8 @@ namespace Pong
 			if (!isIntersecting)
 			{
 				mBall->Velocity().x *= -1;
+
+				// TODO increase ball speed
 
 				// this makes it so velocity only changes the one time
 				isIntersecting = true;
@@ -133,6 +135,7 @@ namespace Pong
 			if (yModifier == 0) mPaddle2->Velocity().y *= -1;
 		}
 	}
+
 	void PongGame::ShowGameOver()
 	{
 		XMFLOAT2 tempViewportSize(mViewport.Width, mViewport.Height);
@@ -223,7 +226,6 @@ namespace Pong
 	{
 		mScoreSound->Play();
 	}
-
 
 	void PongGame::Draw(const GameTime &gameTime)
 	{
