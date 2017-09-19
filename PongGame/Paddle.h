@@ -29,9 +29,7 @@ namespace Pong
 		virtual void Draw(const Library::GameTime& gameTime) override;
 
 		void Reset();
-
-		void ResetVelocity(bool positive);
-
+		void ResetVelocity();
 		void StopMotion();
 
 	private:
@@ -50,9 +48,6 @@ namespace Pong
 		Library::KeyboardComponent* mKeyboard;
 		
 		int mPlayer = 1;
-
-		float lastMoveTime = 0.0f;
-		float nextMoveTime = 0.0f;
 
 	};
 }

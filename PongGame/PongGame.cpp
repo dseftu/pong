@@ -77,8 +77,8 @@ namespace Pong
 		}
 		if (mGamestate == Gamestate::Playing)
 		{
-			HandleBallPhysics();			
-			AdjustAIPaddleVelocity();
+			HandleBallPhysics();
+			AdjustAIPaddleVelocity(gameTime);
 			UpdatePlayerScores();
 		}		
 		if (mGamestate == Gamestate::Gameover)
@@ -152,12 +152,12 @@ namespace Pong
 
 	bool PongGame::IsBallAboveAIPaddle()
 	{
-		return mBall->Bounds().Top() - mPaddle2->Bounds().Height < mPaddle2->Bounds().Top();
+		return mBall->Bounds().Bottom() < mPaddle2->Bounds().Top();
 	}
 
 	bool PongGame::IsBallBelowAIPaddle()
 	{
-		return mBall->Bounds().Bottom() + mPaddle2->Bounds().Height > mPaddle2->Bounds().Bottom();
+		return mBall->Bounds().Top() > mPaddle2->Bounds().Bottom();
 	}
 
 	void PongGame::HandleKeyboardInput()
@@ -178,44 +178,52 @@ namespace Pong
 
 	void PongGame::HandleBallPhysics()
 	{
-		// Did the ball hit a paddle?
-		if (mBall->Bounds().Intersects(mPaddle1->Bounds()) ||
-			mBall->Bounds().Intersects(mPaddle2->Bounds()))
+		bool paddle1Intersects = mBall->Bounds().Intersects(mPaddle1->Bounds());
+		bool paddle2Intersects = mBall->Bounds().Intersects(mPaddle2->Bounds());
+
+		// Did the ball hit a paddle?		
+		if (paddle1Intersects || paddle2Intersects)
 		{
-			if (!isIntersecting)
+			if (paddle2Intersects)
+			{
+				mPaddle2->Velocity().y = 0.0f;
+			}
+
+			if (!mIsIntersecting)
 			{
 				mBall->Velocity().x *= -1.0f;
 
 				// this makes it so velocity only changes the one time
-				isIntersecting = true;
+				mIsIntersecting = true;
 
 				MakeBlip();
 			}
 		}
 		else
 		{
-			isIntersecting = false;
+			mIsIntersecting = false;
 		}
 
 		// Did the ball hit a wall?
 		if (mBall->DidBallHitWall()) MakeBlip();
 	}
 
-	void PongGame::AdjustAIPaddleVelocity()
-	{		
-		if (mBall->Velocity().x < 0)
+	void PongGame::AdjustAIPaddleVelocity(const GameTime &gameTime)
+	{
+		// don't attempt to follow if the ball is going the other way
+		if (mBall->Velocity().x < 0 || int(gameTime.TotalGameTimeSeconds().count()) % mAIDelay == 0)
 		{
-			mPaddle2->Velocity().x = 0.0f;
+			mPaddle2->Velocity().y = 0.0f;
 		}
 		else if (IsBallBelowAIPaddle() && mPaddle2->Velocity().y <= 0)
 		{
-			mPaddle2->ResetVelocity(true);
+			mPaddle2->ResetVelocity();			
 		}
 		else if (IsBallAboveAIPaddle() && mPaddle2->Velocity().y >= 0)
 		{
-			mPaddle2->ResetVelocity(false);
-		}
-		
+			mPaddle2->ResetVelocity();
+			mPaddle2->Velocity().y *= -1;
+		}		
 	}
 
 	void PongGame::ShowGameOver()
@@ -298,9 +306,8 @@ namespace Pong
 		subMessageStream1 << mPlayer1Score;
 
 		wostringstream subMessageStream2;
-		//subMessageStream2 << mPlayer2Score;
-		subMessageStream2 << mPaddle2->Velocity().y;
-
+		subMessageStream2 << mPlayer2Score;
+		
 		// update player 1 text
 		mPlayer1ScoreText = subMessageStream1.str();
 		XMVECTOR messageSize = mFont->MeasureString(mPlayer1ScoreText.c_str());

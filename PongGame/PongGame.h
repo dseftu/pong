@@ -37,7 +37,7 @@ namespace Pong
 		void MakeScoreSound();
 		void UpdatePlayerScores();
 		void ShowGameOver();
-		void AdjustAIPaddleVelocity();
+		void AdjustAIPaddleVelocity(const Library::GameTime& gameTime);
 		void HandleBallPhysics();
 		void HandleKeyboardInput();
 		void FreezeMotion();
@@ -72,8 +72,8 @@ namespace Pong
 
 		int32_t mPlayer1Score = 0;
 		int32_t mPlayer2Score = 0;
-		float lastAIChange = -5.0f;
-		bool isIntersecting = false;
+		bool mIsIntersecting = false;
+		static const int32_t mAIDelay = 3; // this more or less dictates difficulty
 
 		Gamestate mGamestate = Gamestate::Initial;
 	};

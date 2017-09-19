@@ -8,7 +8,7 @@ using namespace Microsoft::WRL;
 
 namespace Pong
 {
-	const float Paddle::PaddleSpeed = 250.0f;
+	const float Paddle::PaddleSpeed = 450.0f;
 	const int Paddle::WallOffset = 100;
 
 	random_device Paddle::sDevice;
@@ -70,7 +70,7 @@ namespace Pong
 
 		if (mBounds.Y + mBounds.Height >= viewport.Height && mVelocity.y > 0.0f)
 		{
-			mBounds.Y = (int32_t)viewport.Height - mBounds.Height;			
+			mBounds.Y = static_cast<int>(viewport.Height) - mBounds.Height;
 		}
 		if (mBounds.Y <= 0 && mVelocity.y < 0.0f)
 		{
@@ -110,31 +110,25 @@ namespace Pong
 		Library::Rectangle viewportSize(static_cast<int>(mGame->Viewport().TopLeftX), static_cast<int>(mGame->Viewport().TopLeftY), static_cast<int>(mGame->Viewport().Width), static_cast<int>(mGame->Viewport().Height));
 		Point center = viewportSize.Center();
 		
-		ResetVelocity(true);
-
 		if (mPlayer == 1)
 		{
+			ResetVelocity();
 			mBounds.X = WallOffset;
 		}
 		else
 		{
+			StopMotion();
 			mBounds.X = viewportSize.Right() - WallOffset;			
 		}
 
 		mBounds.Y = center.Y - mTextureHalfSize.Y;		
 	}
 
-	void Paddle::ResetVelocity(bool positive)
+	void Paddle::ResetVelocity()
 	{
 		mVelocity.x = 0;
-		if (positive)
-		{
-			mVelocity.y = PaddleSpeed;
-		}
-		else
-		{
-			mVelocity.y = -PaddleSpeed;
-		}		
+		mVelocity.y = PaddleSpeed;
+		
 	}
 
 	void Paddle::StopMotion()
