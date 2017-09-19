@@ -59,5 +59,8 @@ namespace Pong
 		bool mPlayer1Scored;
 		bool mPlayer2Scored;
 		bool mBallHitWall;
+
+		
+		float mColorModifier = 0.5f;
 	};
 }

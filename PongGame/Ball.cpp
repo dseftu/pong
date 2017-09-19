@@ -50,7 +50,7 @@ namespace Pong
 
 		mPlayer1Scored = false;
 		mPlayer2Scored = false;
-
+		
 		Reset();
 	}
 
@@ -82,6 +82,8 @@ namespace Pong
 			mBallHitWall = true;
 			mVelocity.y *= -1;
 		}
+
+		
 	}
 
 	void Ball::Draw(const Library::GameTime& gameTime)
@@ -89,8 +91,19 @@ namespace Pong
 		UNREFERENCED_PARAMETER(gameTime);
 
 		XMFLOAT2 position(static_cast<float>(mBounds.X), static_cast<float>(mBounds.Y));
-		SpriteManager::DrawTexture2D(mTexture.Get(), position);
 		
+		mColorModifier+=gameTime.ElapsedGameTimeSeconds().count();
+		float r = mColorModifier + 0.5f;
+		float g = mColorModifier;
+		float b = mColorModifier - 0.5f;
+
+		if (r > 1.0f) r -= 1;
+		if (g > 1.0f) g -= 1;
+		if (b > 1.0f) b -= 1;
+		if (mColorModifier > 1.0f) mColorModifier -= 1;
+
+		DirectX::FXMVECTOR color = XMVectorSet(r,g,b, 1.0);
+		SpriteManager::DrawTexture2D(mTexture.Get(), position, color);
 	}
 
 	bool Ball::DidBallHitWall()
